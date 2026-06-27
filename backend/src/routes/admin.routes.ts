@@ -4,7 +4,7 @@ import {
   saveAdminConfig,
   getUsers,
   getUsageStats,
-} from '../controllers/admin.controller';
+} from '../controllers/admin.controller.js';
 
 const router = Router();
 

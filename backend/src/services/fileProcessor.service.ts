@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import * as pdf from 'pdf-parse';
+// @ts-ignore
+import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
 import xlsx from 'xlsx';
 
@@ -9,6 +10,7 @@ export interface FileContext {
   fileName: string;
   content: string;
 }
+
 
 export async function extractTextFromFile(filePath: string, mimeType: string): Promise<string> {
   const ext = path.extname(filePath).toLowerCase();
@@ -34,6 +36,7 @@ export async function extractTextFromFile(filePath: string, mimeType: string): P
 
 async function extractFromPDF(filePath: string): Promise<string> {
   const dataBuffer = fs.readFileSync(filePath);
+  // @ts-ignore
   const data = await pdf(dataBuffer);
   return data.text;
 }
