@@ -1,26 +1,31 @@
 import { createServer } from 'node:http';
-import { createApp } from './app.js';
-import { attachWebSocket } from './ws/socket.js';
-import { env } from './config/env.js';
 
-const port = process.env.PORT ? Number(process.env.PORT) : env.port;
+const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 
-const app = createApp();
-const server = createServer(app);
+async function main() {
+  const { createApp } = await import('./app.js');
+  const { attachWebSocket } = await import('./ws/socket.js');
 
-attachWebSocket(server);
+  const app = createApp();
+  const server = createServer(app);
 
-server.listen(port, '0.0.0.0', () => {
-  console.log(
-    `[meeting-copilot] API ready at http://0.0.0.0:${port} (${env.nodeEnv})`,
-  );
-  console.log(`[meeting-copilot] WebSocket listening on ${env.wsPath}`);
+  attachWebSocket(server);
+
+  server.listen(port, '0.0.0.0', () => {
+    console.log(`[meeting-copilot] API ready at http://0.0.0.0:${port}`);
+    console.log(`[meeting-copilot] WebSocket listening on /ws`);
+  });
+
+  const shutdown = (signal: string) => {
+    console.log(`\n[meeting-copilot] received ${signal}, shutting down...`);
+    server.close(() => process.exit(0));
+  };
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+}
+
+main().catch((err) => {
+  console.error('[meeting-copilot] Failed to start:', err);
+  process.exit(1);
 });
-
-const shutdown = (signal: string) => {
-  console.log(`\n[meeting-copilot] received ${signal}, shutting down...`);
-  server.close(() => process.exit(0));
-};
-
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
