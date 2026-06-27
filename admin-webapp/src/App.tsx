@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
-import { Layout, Settings as SettingsIcon, Users as UsersIcon, BarChart3 } from 'lucide-react';
+import { Settings as SettingsIcon, Users as UsersIcon, BarChart3 } from 'lucide-react';
 
 function App() {
   return (

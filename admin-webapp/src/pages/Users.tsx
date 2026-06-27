@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getUsers } from '../lib/api';
-import { Search, MoreVertical, Trash2 } from 'lucide-react';
+import { Search, MoreVertical } from 'lucide-react';
 
 export default function Users() {
   const [users, setUsers] = useState<any[]>([]);
