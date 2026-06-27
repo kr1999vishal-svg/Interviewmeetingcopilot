@@ -1,9 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-// @ts-ignore
-import pdf from 'pdf-parse';
+import { createRequire } from 'module';
 import mammoth from 'mammoth';
 import xlsx from 'xlsx';
+
+const require = createRequire(import.meta.url);
+// @ts-ignore
+const pdf = require('pdf-parse');
 
 export interface FileContext {
   fileId: string;
@@ -36,7 +39,6 @@ export async function extractTextFromFile(filePath: string, mimeType: string): P
 
 async function extractFromPDF(filePath: string): Promise<string> {
   const dataBuffer = fs.readFileSync(filePath);
-  // @ts-ignore
   const data = await pdf(dataBuffer);
   return data.text;
 }
