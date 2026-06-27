@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Meeting Copilot</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: #f8fafc;
+    }
+    h1 { color: #1e293b; margin-bottom: 24px; }
+    h2 { color: #334155; margin-top: 32px; margin-bottom: 16px; font-size: 20px; }
+    p { margin-bottom: 16px; color: #475569; }
+    ul { margin-bottom: 16px; padding-left: 24px; color: #475569; }
+    li { margin-bottom: 8px; }
+    .section { background: white; padding: 32px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .last-updated { color: #64748b; font-size: 14px; margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <div class="section">
+    <h1>Privacy Policy - Meeting Copilot</h1>
+    
+    <h2>Data Collection</h2>
+    <p>Meeting Copilot collects the following user data:</p>
+    <ul>
+      <li><strong>Configuration Data (stored locally)</strong> - Backend URL, AI provider selection, API key, AI model name, and toggle settings. This data is stored locally using Chrome storage and never transmitted to third-party services.</li>
+      <li><strong>Meeting Audio (transient)</strong> - Tab audio is captured only when you click the "Listen" button. Audio is sent to your configured backend for transcription and is not stored by the extension.</li>
+      <li><strong>Meeting Captions (transient)</strong> - Captions are read from Google Meet or Microsoft Teams for question detection and context building. They are not stored or transmitted externally (except as context to your backend for answer generation).</li>
+    </ul>
+
+    <h2>Data We Do NOT Collect</h2>
+    <ul>
+      <li>Browsing history</li>
+      <li>Personal identity information</li>
+      <li>User location</li>
+      <li>Third-party account credentials</li>
+      <li>Any data outside of configured meeting pages</li>
+    </ul>
+
+    <h2>Data Storage</h2>
+    <p>All configuration data is stored locally on your device using Chrome's storage API. Meeting audio and captions are processed transiently and are not persisted by the extension. All AI processing happens through your configured backend server, which you control.</p>
+
+    <h2>Data Sharing</h2>
+    <p>Meeting Copilot does not share any data with third parties. Audio and caption data is only sent to your configured backend server for processing. You have full control over your backend and can self-host it or use your own server.</p>
+
+    <h2>User Control</h2>
+    <p>You can:</p>
+    <ul>
+      <li>Configure or change your backend URL at any time through extension options</li>
+      <li>Disable the extension through Chrome extension settings</li>
+      <li>Clear all stored data by uninstalling the extension</li>
+      <li>Stop audio capture at any time by clicking the "Listen" button again</li>
+    </ul>
+
+    <h2>Security</h2>
+    <p>Your API keys are stored locally in Chrome storage and are only sent to your configured backend server. We recommend using a secure HTTPS connection for your backend server.</p>
+
+    <h2>Changes to This Policy</h2>
+    <p>We may update this privacy policy from time to time. We will notify users of any material changes by updating the policy on this page.</p>
+
+    <p class="last-updated">Last updated: June 2026</p>
+  </div>
+</body>
+</html>

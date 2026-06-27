@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280, height=800">
+  <title>Meeting Copilot - Question Detection</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 1280px;
+      height: 800px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
+    .meet-header {
+      height: 64px;
+      background: #202124;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      border-bottom: 1px solid #3c4043;
+    }
+    .meet-logo {
+      color: #8ab4f8;
+      font-size: 20px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .meet-title {
+      color: #e8eaed;
+      font-size: 16px;
+      margin-left: 32px;
+    }
+    .meet-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding: 24px;
+      height: calc(100% - 64px);
+    }
+    .participant {
+      background: #3c4043;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e8eaed;
+      font-size: 18px;
+      position: relative;
+    }
+    .participant-name {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .speaking {
+      border: 3px solid #34d399;
+    }
+  </style>
+  <link rel="stylesheet" href="../content/overlay.css">
+</head>
+<body>
+  <div class="meet-header">
+    <div class="meet-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+      </svg>
+      Google Meet
+    </div>
+    <div class="meet-title">Sprint Planning</div>
+  </div>
+  
+  <div class="meet-grid">
+    <div class="participant speaking">
+      <div class="participant-name">Kevin Park</div>
+    </div>
+    <div class="participant">
+      <div class="participant-name">Rachel Green</div>
+    </div>
+    <div class="participant">
+      <div class="participant-name">You</div>
+    </div>
+    <div class="participant">
+      <div class="participant-name">Daniel White</div>
+    </div>
+    <div class="participant">
+      <div class="participant-name">Sophie Turner</div>
+    </div>
+    <div class="participant">
+      <div class="participant-name">Mark Johnson</div>
+    </div>
+  </div>
+
+  <div id="mc-overlay-root" class="mc-overlay">
+    <div class="mc-header">
+      <span class="mc-dot"></span>
+      <span class="mc-title">Sprint Planning</span>
+      <span class="mc-spacer"></span>
+      <button class="mc-chip">Listen</button>
+      <button class="mc-chip mc-chip-on">Auto: On</button>
+      <button class="mc-chip">Debug</button>
+      <button class="mc-icon-btn">–</button>
+    </div>
+    <div class="mc-body">
+      <div class="mc-status mc-status-ok">Listening to captions…</div>
+      <div class="mc-label">Latest</div>
+      <div class="mc-transcript">Kevin Park: When can we expect the API integration to be completed and ready for testing?</div>
+      <div class="mc-label">Detected question</div>
+      <div class="mc-question">When can we expect the API integration to be completed and ready for testing?</div>
+      <div class="mc-label">Suggested answer</div>
+      <div class="mc-answer">The API integration is currently 80% complete. We expect to finish development by Friday and have it ready for QA testing early next week.</div>
+      <div class="mc-actions">
+        <button class="mc-btn">Answer</button>
+        <button class="mc-btn">Insert to chat</button>
+        <button class="mc-btn mc-btn-primary">Insert + Send</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

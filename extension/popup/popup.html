@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meeting Copilot</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <span class="dot"></span>
+      <h1>Interview AI - Meeting Copilot</h1>
+    </header>
+
+    <main>
+      <div id="authSection">
+        <p class="muted">Sign in to access AI-powered meeting assistance.</p>
+        <button id="signInBtn" class="btn-primary" style="width: 100%">Sign in with Google</button>
+      </div>
+
+      <div id="meetingSection" style="display: none">
+        <div class="user-info">
+          <span id="userEmail"></span>
+          <button id="signOutBtn" class="link">Sign out</button>
+        </div>
+
+        <label class="field">
+          <span>Active meeting link</span>
+          <input id="link" type="url" placeholder="https://meet.google.com/abc-defg-hij" />
+          <small>Only this meeting will be assisted.</small>
+        </label>
+
+        <label class="field">
+          <span>Meeting title (optional)</span>
+          <input id="title" type="text" placeholder="Weekly sync" />
+        </label>
+
+        <label class="field">
+          <span>Context / brief (optional)</span>
+          <textarea id="context" rows="3" placeholder="Background the AI should use when answering…"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Attach files (PDF, Word, Excel)</span>
+          <input id="fileInput" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx" multiple />
+          <small>Files will be used to enhance AI responses.</small>
+        </label>
+
+        <div id="fileList" class="file-list"></div>
+
+        <div class="row">
+          <label class="toggle enhanced">
+            <input id="autoAnswer" type="checkbox" />
+            <span class="toggle-label">
+              <span class="toggle-text">Auto-answer questions</span>
+              <span class="toggle-desc">Automatically answer detected questions</span>
+            </span>
+          </label>
+          <label class="toggle enhanced">
+            <input id="autoSend" type="checkbox" />
+            <span class="toggle-label">
+              <span class="toggle-text">Auto-send to chat</span>
+              <span class="toggle-desc">Send answers automatically</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="save" class="btn-primary">Save</button>
+        </div>
+      </div>
+
+      <p id="status" class="status"></p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
