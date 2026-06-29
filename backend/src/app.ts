@@ -32,6 +32,10 @@ export const createApp = () => {
         if (origin.startsWith('chrome-extension://') || origin.startsWith('moz-extension://')) {
           return callback(null, true);
         }
+        // Allow Vercel admin webapp
+        if (origin === 'https://interviewmeetingcopilot.vercel.app') {
+          return callback(null, true);
+        }
         return callback(null, false);
       },
     }),
