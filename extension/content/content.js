@@ -34,7 +34,15 @@
   /* -------------------------- messaging helpers -------------------------- */
   const send = (message) =>
     new Promise((resolve) => {
-      chrome.runtime.sendMessage(message, (resp) => resolve(resp || { ok: false }));
+      chrome.runtime.sendMessage(message, (resp) => {
+        // Handle extension context invalidation
+        if (chrome.runtime.lastError) {
+          console.log('Extension context invalidated, reloading page...');
+          location.reload();
+          return;
+        }
+        resolve(resp || { ok: false });
+      });
     });
 
   async function loadConfig() {
