@@ -61,6 +61,25 @@ export const createApp = () => {
     }
   });
 
+  app.post('/debug/supabase-save', async (req, res) => {
+    const { supabase } = await import('./lib/supabase.js');
+    try {
+      const testConfig = {
+        backend_url: 'https://test-render-url.onrender.com',
+        ai_provider: 'openai',
+        api_key: 'test-key',
+        model: 'gpt-4',
+        stt_provider: 'openai',
+        stt_api_key: 'test-stt-key',
+        stt_model: 'whisper-1'
+      };
+      const { data, error } = await supabase.from('admin_config').upsert(testConfig).select().single();
+      res.json({ success: !error, error: error?.message, code: error?.code, data });
+    } catch (err) {
+      res.json({ success: false, error: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
   app.use('/api/meetings', meetingRouter);
   app.use('/api/brief', briefRouter);
   app.use('/api/suggestions', suggestionRouter);
