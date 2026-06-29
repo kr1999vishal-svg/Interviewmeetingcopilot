@@ -51,6 +51,16 @@ export const createApp = () => {
     });
   });
 
+  app.get('/debug/supabase', async (_req, res) => {
+    const { supabase } = await import('./lib/supabase.js');
+    try {
+      const { data, error } = await supabase.from('admin_config').select('*').limit(1);
+      res.json({ success: !error, error: error?.message, code: error?.code, data });
+    } catch (err) {
+      res.json({ success: false, error: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
   app.use('/api/meetings', meetingRouter);
   app.use('/api/brief', briefRouter);
   app.use('/api/suggestions', suggestionRouter);
