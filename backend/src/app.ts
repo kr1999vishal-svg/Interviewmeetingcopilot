@@ -42,6 +42,15 @@ export const createApp = () => {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
 
+  app.get('/debug/env', (_req, res) => {
+    res.json({
+      hasSupabaseUrl: !!process.env.SUPABASE_URL,
+      hasSupabaseKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      supabaseUrlPrefix: process.env.SUPABASE_URL?.substring(0, 20) + '...',
+      nodeEnv: process.env.NODE_ENV
+    });
+  });
+
   app.use('/api/meetings', meetingRouter);
   app.use('/api/brief', briefRouter);
   app.use('/api/suggestions', suggestionRouter);
