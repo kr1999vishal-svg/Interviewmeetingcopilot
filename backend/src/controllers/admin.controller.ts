@@ -23,7 +23,7 @@ export async function getAdminConfig(req: Request, res: Response) {
       .single();
 
     if (error) {
-      console.log('Supabase error, using fallback:', error.message);
+      console.log('Supabase error, using fallback:', error.message, error.code);
       return res.json(fallbackConfig);
     }
 
