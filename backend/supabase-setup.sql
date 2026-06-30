@@ -7,9 +7,12 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS users (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
-  name TEXT,
-  picture TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  display_name TEXT,
+  picture_url TEXT,
+  meeting_count INTEGER DEFAULT 0,
+  file_count INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Admin config table
