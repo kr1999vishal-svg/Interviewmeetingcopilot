@@ -24,7 +24,7 @@ export default function Users() {
 
   const filteredUsers = users.filter(user =>
     user.email?.toLowerCase().includes(search.toLowerCase()) ||
-    user.displayName?.toLowerCase().includes(search.toLowerCase())
+    user.display_name?.toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) {
@@ -78,10 +78,10 @@ export default function Users() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium">
-                      {user.displayName?.charAt(0) || user.email?.charAt(0)}
+                      {user.display_name?.charAt(0) || user.email?.charAt(0)}
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-white">{user.displayName || 'Unknown'}</div>
+                      <div className="text-sm font-medium text-white">{user.display_name || 'Unknown'}</div>
                     </div>
                   </div>
                 </td>
@@ -89,13 +89,13 @@ export default function Users() {
                   {user.email}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                  {user.meetingCount || 0}
+                  {user.meeting_count || 0}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                  {user.fileCount || 0}
+                  {user.file_count || 0}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                  {new Date(user.createdAt).toLocaleDateString()}
+                  {new Date(user.created_at).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button className="text-gray-400 hover:text-white p-1">
