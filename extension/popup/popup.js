@@ -86,6 +86,23 @@ async function signInWithGoogle() {
       // Save user to config
       await send({ type: 'setConfig', patch: { user } });
       
+      // Register user with backend
+      try {
+        const { config: backendConfig } = await send({ type: 'getConfig' });
+        const backendUrl = backendConfig?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+        await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            name: user.name,
+            picture: user.picture
+          })
+        });
+      } catch (err) {
+        console.log('Failed to register user with backend:', err);
+      }
+      
       showMeetingSection();
       showStatus('Signed in successfully!');
     }

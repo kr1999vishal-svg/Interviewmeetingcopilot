@@ -151,3 +151,54 @@ export async function getUsageStats(req: Request, res: Response) {
     });
   }
 }
+
+export async function registerUser(req: Request, res: Response) {
+  try {
+    const { email, name, picture } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Check if user exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (existingUser) {
+      // Update last seen
+      await supabase
+        .from('users')
+        .update({ last_seen: new Date().toISOString() })
+        .eq('email', email);
+      return res.json({ success: true, user: existingUser });
+    }
+
+    // Create new user
+    const { data, error } = await supabase
+      .from('users')
+      .insert({
+        email,
+        display_name: name || email.split('@')[0],
+        picture_url: picture || '',
+        meeting_count: 0,
+        file_count: 0,
+        created_at: new Date().toISOString(),
+        last_seen: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.log('Supabase error:', error.message);
+      return res.status(500).json({ error: 'Failed to register user' });
+    }
+
+    res.json({ success: true, user: data });
+  } catch (error) {
+    console.log('Failed to register user:', error);
+    res.status(500).json({ error: 'Failed to register user' });
+  }
+}
