@@ -4,7 +4,7 @@ const send = (message) =>
   new Promise((resolve) => chrome.runtime.sendMessage(message, (r) => resolve(r || {})));
 
 // Google OAuth configuration - replace with your client ID
-const GOOGLE_CLIENT_ID = '691911053932-nl7hfi8tpgblhi5htid0gh0t13llbvqd.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '691911053932-pkaiaevm43hovq4nshqjj6i93c2f94fn.apps.googleusercontent.com';
 const SCOPES = ['email', 'profile'];
 
 let user = null;
