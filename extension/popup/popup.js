@@ -90,19 +90,8 @@ async function signInWithGoogle() {
       showStatus('Signed in successfully!');
     }
   } catch (error) {
-    // Fallback to mock authentication for testing
-    console.log('OAuth failed, using mock authentication:', error.message);
-    user = {
-      email: 'test@example.com',
-      name: 'Test User',
-      picture: '',
-      token: 'mock-token'
-    };
-    
-    await send({ type: 'setConfig', patch: { user } });
-    
-    showMeetingSection();
-    showStatus('Signed in (demo mode)');
+    console.error('Google sign-in failed:', error);
+    showStatus('Sign-in failed. Please try again.', true);
   }
 }
 
