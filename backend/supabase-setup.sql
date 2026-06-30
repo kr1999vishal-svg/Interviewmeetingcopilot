@@ -15,6 +15,40 @@ CREATE TABLE IF NOT EXISTS users (
   last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- If the table already exists with old schema, add missing columns
+DO $$
+BEGIN
+  -- Add missing columns if they don't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'display_name') THEN
+    ALTER TABLE users ADD COLUMN display_name TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'picture_url') THEN
+    ALTER TABLE users ADD COLUMN picture_url TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'meeting_count') THEN
+    ALTER TABLE users ADD COLUMN meeting_count INTEGER DEFAULT 0;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'file_count') THEN
+    ALTER TABLE users ADD COLUMN file_count INTEGER DEFAULT 0;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'last_seen') THEN
+    ALTER TABLE users ADD COLUMN last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+  END IF;
+  
+  -- Rename old columns if they exist
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'name') THEN
+    ALTER TABLE users RENAME COLUMN name TO display_name;
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'picture') THEN
+    ALTER TABLE users RENAME COLUMN picture TO picture_url;
+  END IF;
+END $$;
+
 -- Admin config table
 CREATE TABLE IF NOT EXISTS admin_config (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
