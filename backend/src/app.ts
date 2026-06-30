@@ -46,44 +46,6 @@ export const createApp = () => {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
 
-  app.get('/debug/env', (_req, res) => {
-    res.json({
-      hasSupabaseUrl: !!process.env.SUPABASE_URL,
-      hasSupabaseKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      supabaseUrlPrefix: process.env.SUPABASE_URL?.substring(0, 20) + '...',
-      nodeEnv: process.env.NODE_ENV
-    });
-  });
-
-  app.get('/debug/supabase', async (_req, res) => {
-    const { supabase } = await import('./lib/supabase.js');
-    try {
-      const { data, error } = await supabase.from('admin_config').select('*').limit(1);
-      res.json({ success: !error, error: error?.message, code: error?.code, data });
-    } catch (err) {
-      res.json({ success: false, error: err instanceof Error ? err.message : String(err) });
-    }
-  });
-
-  app.post('/debug/supabase-save', async (req, res) => {
-    const { supabase } = await import('./lib/supabase.js');
-    try {
-      const testConfig = {
-        backend_url: 'https://test-render-url.onrender.com',
-        ai_provider: 'openai',
-        api_key: 'test-key',
-        model: 'gpt-4',
-        stt_provider: 'openai',
-        stt_api_key: 'test-stt-key',
-        stt_model: 'whisper-1'
-      };
-      const { data, error } = await supabase.from('admin_config').upsert(testConfig).select().single();
-      res.json({ success: !error, error: error?.message, code: error?.code, data });
-    } catch (err) {
-      res.json({ success: false, error: err instanceof Error ? err.message : String(err) });
-    }
-  });
-
   app.use('/api/meetings', meetingRouter);
   app.use('/api/brief', briefRouter);
   app.use('/api/suggestions', suggestionRouter);
