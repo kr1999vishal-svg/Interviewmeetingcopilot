@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Interview AI - Meeting Copilot",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "AI meeting assistant for Google Meet and Teams. Private transcription, question detection, and AI answers.",
   "permissions": ["storage", "scripting", "activeTab", "tabs", "tabCapture", "offscreen", "identity"],
   "host_permissions": [
