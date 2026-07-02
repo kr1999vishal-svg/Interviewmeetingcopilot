@@ -173,12 +173,23 @@
   }
 
   /* ------------------------------ lifecycle ------------------------------ */
-  function activate() {
+  async function activate() {
     if (active) return;
     active = true;
     overlay.mount();
     overlay.setAuto(Boolean(config?.autoAnswer));
     overlay.setMeetingTitle(config?.activeMeeting?.title || 'Meeting Copilot');
+
+    // Auto-start transcription if on the configured meeting
+    const match = matchesActiveMeeting();
+    if (match.ok && !listening) {
+      const resp = await send({ type: 'startCapture' });
+      if (resp.ok) {
+        listening = true;
+        overlay.setListening(true);
+        overlay.setStatus('Auto-starting private transcription…', 'ok');
+      }
+    }
 
     overlay.on('answer', () => {
       const q = lastQuestion || contextLines[contextLines.length - 1] || '';

@@ -28,7 +28,7 @@ function report(type, payload) {
 async function sendSegment(blob, mimeType) {
   try {
     // Fetch STT config from backend admin endpoint
-    let sttConfig = { provider: 'openai', apiKey: '' };
+    let sttConfig = { provider: 'openai', apiKey: '', model: 'whisper-1' };
     try {
       const configRes = await fetch(`${cfg.backendUrl.replace(/\/$/, '')}/api/admin/config`);
       if (configRes.ok) {
@@ -36,12 +36,18 @@ async function sendSegment(blob, mimeType) {
         sttConfig = {
           provider: adminConfig.sttProvider || 'openai',
           apiKey: adminConfig.sttApiKey || '',
+          model: adminConfig.sttModel || 'whisper-1',
         };
       }
     } catch (configErr) {
       console.log('Failed to fetch admin config, using provided config:', configErr.message);
       // Fall back to provided config
-      sttConfig = cfg.ai || { provider: 'openai', apiKey: '' };
+      sttConfig = cfg.ai || { provider: 'openai', apiKey: '', model: 'whisper-1' };
+    }
+
+    if (!sttConfig.apiKey) {
+      report('sttError', { error: 'STT API key not configured. Please set it in admin settings.' });
+      return;
     }
 
     const buf = await blob.arrayBuffer();
@@ -51,6 +57,7 @@ async function sendSegment(blob, mimeType) {
         'Content-Type': mimeType,
         'x-ai-provider': sttConfig?.provider || 'openai',
         'x-ai-key': sttConfig?.apiKey || '',
+        'x-stt-model': sttConfig?.model || 'whisper-1',
       },
       body: buf,
     });
