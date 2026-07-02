@@ -29,7 +29,9 @@
   let debugOn = false;
   let lastCaptionCount = 0;
   let processingAllowed = false;
-  let listening = false; // private tab-audio transcription
+  let listening = false;
+  let usageInterval = null;
+  let usageSeconds = 0; // private tab-audio transcription
 
   /* -------------------------- messaging helpers -------------------------- */
   const send = (message) =>
@@ -188,6 +190,7 @@
         listening = true;
         overlay.setListening(true);
         overlay.setStatus('Auto-starting private transcription…', 'ok');
+        startUsageTracking();
       }
     }
 
@@ -209,11 +212,6 @@
       config = resp.config || { ...config, autoAnswer: next };
       overlay.setAuto(Boolean(config.autoAnswer));
     });
-    overlay.on('toggleDebug', () => {
-      debugOn = !debugOn;
-      overlay.setDebugVisible(debugOn);
-      if (debugOn) renderDebug();
-    });
     overlay.on('close', () => {
       userClosed = true;
       // Persist the userClosed flag to storage
@@ -226,12 +224,14 @@
         listening = false;
         overlay.setListening(false);
         overlay.setStatus('Private transcription stopped.', 'ok');
+        stopUsageTracking();
       } else {
         const resp = await send({ type: 'startCapture' });
         if (resp.ok) {
           listening = true;
           overlay.setListening(true);
           overlay.setStatus('Starting private transcription…', 'ok');
+          startUsageTracking();
         } else {
           overlay.setStatus('⚠ ' + (resp.error || 'Failed to start capture'), 'warn');
         }
@@ -256,9 +256,76 @@
     }
   }
 
+  async function startUsageTracking() {
+    if (usageInterval) return;
+    
+    // Check user usage first
+    try {
+      const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+      const email = config?.user?.email;
+      if (!email) {
+        overlay.setStatus('Please sign in to track usage.', 'warn');
+        return;
+      }
+
+      const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/usage?email=${encodeURIComponent(email)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          if (data.user.remaining_seconds <= 0) {
+            overlay.setStatus('Time expired. Please purchase a plan.', 'warn');
+            // Redirect to payment page
+            window.open('https://interviewmeetingcopilot.vercel.app/payment', '_blank');
+            return;
+          }
+          usageSeconds = 0;
+        }
+      }
+    } catch (err) {
+      console.log('Failed to check usage:', err);
+    }
+
+    // Start tracking
+    usageInterval = setInterval(async () => {
+      usageSeconds++;
+      
+      // Update usage every 10 seconds
+      if (usageSeconds % 10 === 0) {
+        try {
+          const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+          const email = config?.user?.email;
+          if (email) {
+            await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/usage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, seconds: 10 }),
+            });
+          }
+        } catch (err) {
+          console.log('Failed to update usage:', err);
+        }
+      }
+
+      // Check if time expired (30 seconds free trial or paid plan)
+      if (usageSeconds >= 30 && !config?.user?.hasPaid) {
+        stopUsageTracking();
+        overlay.setStatus('Free trial expired. Please purchase a plan.', 'warn');
+        window.open('https://interviewmeetingcopilot.vercel.app/payment', '_blank');
+      }
+    }, 1000);
+  }
+
+  function stopUsageTracking() {
+    if (usageInterval) {
+      clearInterval(usageInterval);
+      usageInterval = null;
+    }
+  }
+
   function deactivate() {
     if (!active) return;
     active = false;
+    stopUsageTracking();
     overlay.destroy();
   }
 

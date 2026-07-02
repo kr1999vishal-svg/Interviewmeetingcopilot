@@ -187,6 +187,8 @@ export async function registerUser(req: Request, res: Response) {
         file_count: 0,
         created_at: new Date().toISOString(),
         last_seen: new Date().toISOString(),
+        total_usage_seconds: 0,
+        free_trial_used: false,
       })
       .select()
       .single();
@@ -200,5 +202,281 @@ export async function registerUser(req: Request, res: Response) {
   } catch (error) {
     console.log('Failed to register user:', error);
     res.status(500).json({ error: 'Failed to register user' });
+  }
+}
+
+export async function getPaymentPlans(req: Request, res: Response) {
+  try {
+    const { data, error } = await supabase
+      .from('payment_plans')
+      .select('*')
+      .eq('is_active', true)
+      .order('duration_minutes', { ascending: true });
+
+    if (error) {
+      console.log('Supabase error:', error.message);
+      return res.status(500).json({ error: 'Failed to fetch payment plans' });
+    }
+
+    res.json({ success: true, plans: data || [] });
+  } catch (error) {
+    console.log('Failed to get payment plans:', error);
+    res.status(500).json({ error: 'Failed to get payment plans' });
+  }
+}
+
+export async function createRazorpayOrder(req: Request, res: Response) {
+  try {
+    const { email, planId } = req.body;
+
+    if (!email || !planId) {
+      return res.status(400).json({ error: 'Email and planId are required' });
+    }
+
+    // Get plan details
+    const { data: plan, error: planError } = await supabase
+      .from('payment_plans')
+      .select('*')
+      .eq('id', planId)
+      .single();
+
+    if (planError || !plan) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+
+    // Get user
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Create Razorpay order (you'll need to implement actual Razorpay API call)
+    const Razorpay = require('razorpay');
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    const options = {
+      amount: plan.price_inr * 100, // Amount in paise
+      currency: 'INR',
+      receipt: `order_${user.id}_${plan.id}_${Date.now()}`,
+      notes: {
+        userId: user.id,
+        planId: plan.id,
+        email: email,
+      },
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    // Create pending transaction
+    const { data: transaction, error: txError } = await supabase
+      .from('payment_transactions')
+      .insert({
+        user_id: user.id,
+        plan_id: plan.id,
+        razorpay_order_id: order.id,
+        amount: plan.price_inr,
+        currency: 'INR',
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (txError) {
+      console.log('Failed to create transaction:', txError.message);
+    }
+
+    res.json({
+      success: true,
+      order: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        key_id: process.env.RAZORPAY_KEY_ID,
+      },
+      plan,
+    });
+  } catch (error) {
+    console.log('Failed to create Razorpay order:', error);
+    res.status(500).json({ error: 'Failed to create order' });
+  }
+}
+
+export async function verifyPayment(req: Request, res: Response) {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, email } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !email) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Verify signature
+    const crypto = require('crypto');
+    const Razorpay = require('razorpay');
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    const generated_signature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (generated_signature !== razorpay_signature) {
+      return res.status(400).json({ error: 'Invalid signature' });
+    }
+
+    // Get transaction
+    const { data: transaction, error: txError } = await supabase
+      .from('payment_transactions')
+      .select('*')
+      .eq('razorpay_order_id', razorpay_order_id)
+      .single();
+
+    if (txError || !transaction) {
+      return res.status(404).json({ error: 'Transaction not found' });
+    }
+
+    // Update transaction
+    const { error: updateError } = await supabase
+      .from('payment_transactions')
+      .update({
+        razorpay_payment_id,
+        status: 'completed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', transaction.id);
+
+    if (updateError) {
+      console.log('Failed to update transaction:', updateError.message);
+    }
+
+    // Get plan details
+    const { data: plan } = await supabase
+      .from('payment_plans')
+      .select('*')
+      .eq('id', transaction.plan_id)
+      .single();
+
+    // Update user plan
+    const planExpiresAt = new Date();
+    planExpiresAt.setMinutes(planExpiresAt.getMinutes() + plan.duration_minutes);
+
+    const { error: userError } = await supabase
+      .from('users')
+      .update({
+        current_plan_id: plan.id,
+        plan_expires_at: planExpiresAt.toISOString(),
+      })
+      .eq('email', email);
+
+    if (userError) {
+      console.log('Failed to update user plan:', userError.message);
+    }
+
+    res.json({ success: true, planExpiresAt: planExpiresAt.toISOString() });
+  } catch (error) {
+    console.log('Failed to verify payment:', error);
+    res.status(500).json({ error: 'Failed to verify payment' });
+  }
+}
+
+export async function getUserUsage(req: Request, res: Response) {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .select(`
+        *,
+        payment_plans (id, name, duration_minutes, price_inr)
+      `)
+      .eq('email', email as string)
+      .single();
+
+    if (error || !user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Calculate remaining time
+    let remainingSeconds = 0;
+    let isFreeTrial = !user.free_trial_used;
+    
+    if (user.plan_expires_at) {
+      const now = new Date();
+      const expiresAt = new Date(user.plan_expires_at);
+      remainingSeconds = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000));
+    } else if (isFreeTrial) {
+      remainingSeconds = 30; // 30 seconds free trial
+    }
+
+    res.json({
+      success: true,
+      user: {
+        email: user.email,
+        display_name: user.display_name,
+        total_usage_seconds: user.total_usage_seconds,
+        free_trial_used: user.free_trial_used,
+        current_plan: user.payment_plans,
+        plan_expires_at: user.plan_expires_at,
+        remaining_seconds: remainingSeconds,
+        is_free_trial: isFreeTrial,
+      },
+    });
+  } catch (error) {
+    console.log('Failed to get user usage:', error);
+    res.status(500).json({ error: 'Failed to get user usage' });
+  }
+}
+
+export async function updateUsage(req: Request, res: Response) {
+  try {
+    const { email, seconds } = req.body;
+
+    if (!email || seconds === undefined) {
+      return res.status(400).json({ error: 'Email and seconds are required' });
+    }
+
+    // Get user
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update usage
+    const { error } = await supabase
+      .from('users')
+      .update({
+        total_usage_seconds: user.total_usage_seconds + seconds,
+        free_trial_used: user.free_trial_used || seconds >= 30,
+      })
+      .eq('email', email);
+
+    if (error) {
+      console.log('Failed to update usage:', error.message);
+      return res.status(500).json({ error: 'Failed to update usage' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.log('Failed to update usage:', error);
+    res.status(500).json({ error: 'Failed to update usage' });
   }
 }

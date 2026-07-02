@@ -5,6 +5,11 @@ import {
   getUsers,
   getUsageStats,
   registerUser,
+  getPaymentPlans,
+  createRazorpayOrder,
+  verifyPayment,
+  getUserUsage,
+  updateUsage,
 } from '../controllers/admin.controller.js';
 
 const router = Router();
@@ -14,5 +19,10 @@ router.post('/config', saveAdminConfig);
 router.get('/users', getUsers);
 router.get('/stats', getUsageStats);
 router.post('/register', registerUser);
+router.get('/plans', getPaymentPlans);
+router.post('/create-order', createRazorpayOrder);
+router.post('/verify-payment', verifyPayment);
+router.get('/usage', getUserUsage);
+router.post('/usage', updateUsage);
 
 export default router;

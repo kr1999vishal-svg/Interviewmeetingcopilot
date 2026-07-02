@@ -12,8 +12,46 @@ CREATE TABLE IF NOT EXISTS users (
   meeting_count INTEGER DEFAULT 0,
   file_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  -- Payment and usage tracking
+  total_usage_seconds INTEGER DEFAULT 0,
+  free_trial_used BOOLEAN DEFAULT FALSE,
+  current_plan_id UUID REFERENCES payment_plans(id),
+  plan_expires_at TIMESTAMP WITH TIME ZONE
 );
+
+-- Payment plans table
+CREATE TABLE IF NOT EXISTS payment_plans (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name TEXT NOT NULL,
+  duration_minutes INTEGER NOT NULL,
+  price_inr INTEGER NOT NULL,
+  price_usd DECIMAL(10,2) NOT NULL,
+  description TEXT,
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Payment transactions table
+CREATE TABLE IF NOT EXISTS payment_transactions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  plan_id UUID REFERENCES payment_plans(id),
+  razorpay_order_id TEXT,
+  razorpay_payment_id TEXT,
+  amount INTEGER NOT NULL,
+  currency TEXT DEFAULT 'INR',
+  status TEXT DEFAULT 'pending', -- pending, completed, failed
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Insert default payment plans
+INSERT INTO payment_plans (name, duration_minutes, price_inr, price_usd, description) VALUES
+  ('1 Minute', 1, 8, 0.10, '1 minute of meeting copilot'),
+  ('30 Minutes', 30, 800, 10.00, '30 minutes of meeting copilot'),
+  ('45 Minutes', 45, 880, 11.00, '45 minutes of meeting copilot'),
+  ('60 Minutes', 60, 1200, 15.00, '60 minutes of meeting copilot')
+ON CONFLICT DO NOTHING;
 
 -- If the table already exists with old schema, add missing columns
 DO $$
@@ -37,6 +75,23 @@ BEGIN
   
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'last_seen') THEN
     ALTER TABLE users ADD COLUMN last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+  END IF;
+  
+  -- Add payment and usage tracking columns
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'total_usage_seconds') THEN
+    ALTER TABLE users ADD COLUMN total_usage_seconds INTEGER DEFAULT 0;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'free_trial_used') THEN
+    ALTER TABLE users ADD COLUMN free_trial_used BOOLEAN DEFAULT FALSE;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'current_plan_id') THEN
+    ALTER TABLE users ADD COLUMN current_plan_id UUID REFERENCES payment_plans(id);
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'plan_expires_at') THEN
+    ALTER TABLE users ADD COLUMN plan_expires_at TIMESTAMP WITH TIME ZONE;
   END IF;
   
   -- Rename old columns only if they exist AND new columns don't exist

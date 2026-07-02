@@ -53,11 +53,6 @@
       this.autoBtn.onclick = () => this.emit('toggleAuto');
       header.appendChild(this.autoBtn);
 
-      this.debugBtn = el('button', 'mc-chip', 'Debug');
-      this.debugBtn.title = 'Toggle caption/chat detection diagnostics';
-      this.debugBtn.onclick = () => this.emit('toggleDebug');
-      header.appendChild(this.debugBtn);
-
       this.closeBtn = el('button', 'mc-icon-btn mc-close-btn', '×');
       this.closeBtn.title = 'Close Meeting Copilot';
       this.closeBtn.onclick = () => this.emit('close');

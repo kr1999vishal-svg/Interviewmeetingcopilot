@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
-import { Settings as SettingsIcon, Users as UsersIcon, BarChart3 } from 'lucide-react';
+import Payment from './pages/Payment';
+import { Settings as SettingsIcon, Users as UsersIcon, BarChart3, CreditCard } from 'lucide-react';
 
 function App() {
   return (
@@ -27,6 +28,10 @@ function App() {
                   <UsersIcon className="w-4 h-4 mr-2" />
                   Users
                 </Link>
+                <Link to="/payment" className="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Payment
+                </Link>
               </div>
             </div>
           </div>
@@ -35,6 +40,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/payment" element={<Payment />} />
         </Routes>
       </div>
     </Router>
