@@ -139,9 +139,17 @@
     
     contextLines.push(`${line.speaker}: ${line.text}`);
     overlay.setTranscript(`${line.speaker}: ${line.text}`);
+    
+    // Debug: log the text being processed
+    console.log('Processing line:', line.text);
+    console.log('processingAllowed:', processingAllowed);
+    console.log('isQuestion:', isQuestion(line.text));
+    
     // Only assist the meeting whose link was configured (requirement #4).
     if (!processingAllowed) return;
     if (isQuestion(line.text) && line.text !== lastQuestion) {
+      console.log('Question detected:', line.text);
+      overlay.setQuestion(line.text);
       answerQuestion(line.text, { auto: true });
     }
   }
@@ -519,14 +527,30 @@
   // Handle STT transcripts, errors, and status from the background script.
   chrome.runtime.onMessage.addListener((message) => {
     if (message.type === 'sttTranscript') {
+      console.log('Received STT transcript:', message.text);
       contextLines.push(`Private: ${message.text}`);
       overlay.setTranscript(`Private: ${message.text}`);
+      
+      // Also process for question detection
+      const text = message.text;
+      console.log('Processing STT text for question:', text);
+      console.log('processingAllowed:', processingAllowed);
+      console.log('isQuestion:', isQuestion(text));
+      
+      if (!isTimeExpired && processingAllowed && isQuestion(text) && text !== lastQuestion) {
+        console.log('Question detected from STT:', text);
+        overlay.setQuestion(text);
+        answerQuestion(text, { auto: true });
+      }
+      
       if (debugOn) renderDebug();
     } else if (message.type === 'sttError') {
+      console.error('STT Error:', message.error);
       listening = false;
       overlay.setListening(false);
       overlay.setStatus('⚠ Transcription error: ' + message.error, 'warn');
     } else if (message.type === 'sttStatus') {
+      console.log('STT Status:', message.status);
       if (message.status === 'listening') {
         overlay.setStatus('Privately transcribing meeting audio…', 'ok');
       } else if (message.status === 'idle') {
