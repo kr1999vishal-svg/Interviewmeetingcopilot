@@ -10,6 +10,7 @@ import {
   verifyPayment,
   getUserUsage,
   updateUsage,
+  checkApiHealth,
 } from '../controllers/admin.controller.js';
 
 const router = Router();
@@ -24,5 +25,6 @@ router.post('/create-order', createRazorpayOrder);
 router.post('/verify-payment', verifyPayment);
 router.get('/usage', getUserUsage);
 router.post('/usage', updateUsage);
+router.get('/health', checkApiHealth);
 
 export default router;

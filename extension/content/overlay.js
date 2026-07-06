@@ -84,6 +84,10 @@
       const setupDesc = el('div', 'mc-setup-desc', 'Ace your next interview with real-time AI assistance.');
       this.setupEl.appendChild(setupDesc);
       
+      // API health status
+      this.healthStatusEl = el('div', 'mc-health-status', 'Checking API status...');
+      this.setupEl.appendChild(this.healthStatusEl);
+      
       this.meetingLinkInput = el('input', 'mc-input');
       this.meetingLinkInput.placeholder = 'Meeting link (optional)';
       this.meetingLinkInput.type = 'text';
@@ -101,6 +105,7 @@
       
       this.setupBtn = el('button', 'mc-btn mc-btn-primary', 'Start Meeting');
       this.setupBtn.onclick = () => this.emit('setupMeeting');
+      this.setupBtn.disabled = true;
       this.setupEl.appendChild(this.setupBtn);
       
       body.appendChild(this.setupEl);
@@ -296,6 +301,16 @@
         title: this.meetingTitleInput?.value || '',
         context: this.meetingContextInput?.value || '',
       };
+    }
+
+    setHealthStatus(status, message) {
+      if (!this.healthStatusEl) return;
+      this.healthStatusEl.textContent = message;
+      this.healthStatusEl.className = 'mc-health-status ' + status;
+    }
+
+    setSetupEnabled(enabled) {
+      if (this.setupBtn) this.setupBtn.disabled = !enabled;
     }
 
     destroy() {

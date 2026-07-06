@@ -491,3 +491,80 @@ export async function updateUsage(req: Request, res: Response) {
     res.status(500).json({ error: 'Failed to update usage' });
   }
 }
+
+export async function checkApiHealth(req: Request, res: Response) {
+  try {
+    // Fetch admin config to get API keys
+    const { data: config, error } = await supabase
+      .from('admin_config')
+      .select('*')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !config) {
+      return res.json({ 
+        success: false, 
+        ai: false, 
+        stt: false, 
+        error: 'Config not found' 
+      });
+    }
+
+    const results = {
+      ai: false,
+      stt: false,
+      aiError: null as string | null,
+      sttError: null as string | null,
+    };
+
+    // Check AI API
+    if (config.api_key) {
+      try {
+        const aiResponse = await fetch('https://api.openai.com/v1/models', {
+          headers: {
+            'Authorization': `Bearer ${config.api_key}`,
+          },
+        });
+        results.ai = aiResponse.ok;
+        if (!aiResponse.ok) {
+          results.aiError = 'AI API key invalid or expired';
+        }
+      } catch (err) {
+        results.aiError = 'Failed to connect to AI API';
+      }
+    } else {
+      results.aiError = 'AI API key not configured';
+    }
+
+    // Check STT API (same as AI for OpenAI Whisper)
+    if (config.stt_api_key) {
+      try {
+        const sttResponse = await fetch('https://api.openai.com/v1/models', {
+          headers: {
+            'Authorization': `Bearer ${config.stt_api_key}`,
+          },
+        });
+        results.stt = sttResponse.ok;
+        if (!sttResponse.ok) {
+          results.sttError = 'STT API key invalid or expired';
+        }
+      } catch (err) {
+        results.sttError = 'Failed to connect to STT API';
+      }
+    } else {
+      results.sttError = 'STT API key not configured';
+    }
+
+    res.json({
+      success: results.ai && results.stt,
+      ai: results.ai,
+      stt: results.stt,
+      aiError: results.aiError,
+      sttError: results.sttError,
+    });
+  } catch (error) {
+    console.log('Failed to check API health:', error);
+    res.status(500).json({ error: 'Failed to check API health' });
+  }
+}

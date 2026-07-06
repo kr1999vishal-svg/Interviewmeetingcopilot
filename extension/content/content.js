@@ -310,6 +310,8 @@
     if (match.reason === 'no-link') {
       overlay.setStatus('No active meeting set — configure below:', 'warn');
       overlay.setSetupVisible(true);
+      // Check API health when showing setup
+      checkApiHealth();
     } else if (!match.ok) {
       overlay.setStatus('Not the configured meeting — assistance paused.', 'warn');
       overlay.setSetupVisible(false);
@@ -401,6 +403,35 @@
       }
     } catch (err) {
       console.error('Failed to load payment plans:', err);
+    }
+  }
+
+  async function checkApiHealth() {
+    try {
+      const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+      overlay.setHealthStatus('loading', 'Checking API status...');
+      
+      const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/health`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          overlay.setHealthStatus('ok', '✓ AI assistance ready');
+          overlay.setSetupEnabled(true);
+        } else {
+          let errorMsg = 'API check failed: ';
+          if (data.aiError) errorMsg += `AI: ${data.aiError}. `;
+          if (data.sttError) errorMsg += `STT: ${data.sttError}. `;
+          overlay.setHealthStatus('error', errorMsg);
+          overlay.setSetupEnabled(false);
+        }
+      } else {
+        overlay.setHealthStatus('error', 'Failed to check API status');
+        overlay.setSetupEnabled(false);
+      }
+    } catch (err) {
+      console.error('Failed to check API health:', err);
+      overlay.setHealthStatus('error', 'Could not connect to backend');
+      overlay.setSetupEnabled(false);
     }
   }
 

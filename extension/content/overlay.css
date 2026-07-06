@@ -82,6 +82,20 @@
   text-align: center;
 }
 
+#mc-overlay-root .mc-health-status {
+  font-size: 11px; margin-bottom: 10px; padding: 6px 10px;
+  border-radius: 6px; text-align: center;
+}
+#mc-overlay-root .mc-health-status.ok {
+  background: rgba(110, 231, 183, 0.15); color: #6ee7b7;
+}
+#mc-overlay-root .mc-health-status.error {
+  background: rgba(252, 165, 165, 0.15); color: #fca5a5;
+}
+#mc-overlay-root .mc-health-status.loading {
+  background: rgba(251, 191, 36, 0.15); color: #fbbf24;
+}
+
 #mc-overlay-root .mc-input {
   width: 100%; padding: 8px 10px; border-radius: 6px;
   border: 1px solid rgba(148, 163, 184, 0.25); background: rgba(15, 23, 42, 0.8);
