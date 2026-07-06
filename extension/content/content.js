@@ -95,7 +95,7 @@
     // Faster detection - check for question mark first
     if (t.endsWith('?')) return true;
     // Check for question words at the start (faster than regex)
-    const questionWords = ['what', 'how', 'why', 'when', 'where', 'who', 'which', 'can', 'could', 'would', 'should', 'is', 'are', 'do', 'does', 'did'];
+    const questionWords = ['what', 'how', 'why', 'when', 'where', 'who', 'which', 'can', 'could', 'would', 'should', 'is', 'are', 'do', 'does', 'did', 'tell', 'explain', 'describe', 'define'];
     const firstWord = t.split(/\s+/)[0]?.toLowerCase();
     return questionWords.includes(firstWord);
   }
