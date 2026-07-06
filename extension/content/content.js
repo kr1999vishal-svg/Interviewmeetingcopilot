@@ -8,6 +8,7 @@
  *   into the meeting chat.
  */
 (function () {
+  console.log('Meeting Copilot content script loaded');
   const NS = window.MeetingCopilot;
   const { platform, overlay } = NS;
   if (!platform || platform.detect() === null) return;
