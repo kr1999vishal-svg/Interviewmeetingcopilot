@@ -109,21 +109,26 @@ export default function Payment() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <div
             key={plan.id}
             className={`bg-gray-800 rounded-lg border ${
               selectedPlan?.id === plan.id ? 'border-indigo-500' : 'border-gray-700'
-            } p-6 hover:border-indigo-500 transition-colors cursor-pointer`}
+            } p-6 hover:border-indigo-500 transition-colors cursor-pointer relative`}
             onClick={() => !processing && handlePayment(plan)}
           >
+            {plan.name === 'Most Popular' && (
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full">
+                Most Popular
+              </div>
+            )}
             <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
             <div className="text-3xl font-bold text-indigo-400 mb-2">
-              ₹{plan.price_inr}
+              ${plan.price_usd.toFixed(2)}
             </div>
             <div className="text-sm text-gray-400 mb-4">
-              ${plan.price_usd.toFixed(2)} USD
+              ₹{plan.price_inr} INR
             </div>
             <p className="text-sm text-gray-300 mb-4">{plan.description}</p>
             <button

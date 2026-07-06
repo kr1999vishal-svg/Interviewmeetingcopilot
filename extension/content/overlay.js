@@ -66,8 +66,59 @@
       // Body
       const body = el('div', 'mc-body');
 
+      // Free trial description
+      this.trialEl = el('div', 'mc-trial', '🎁 30-second free trial');
+      this.trialEl.style.display = 'none';
+      body.appendChild(this.trialEl);
+
       this.statusEl = el('div', 'mc-status', 'Waiting for meeting…');
       body.appendChild(this.statusEl);
+
+      // Meeting setup section
+      this.setupEl = el('div', 'mc-setup');
+      this.setupEl.style.display = 'none';
+      
+      const setupTitle = el('div', 'mc-label', 'Meeting Setup');
+      this.setupEl.appendChild(setupTitle);
+      
+      const setupDesc = el('div', 'mc-setup-desc', 'Ace your next interview with real-time AI assistance.');
+      this.setupEl.appendChild(setupDesc);
+      
+      this.meetingLinkInput = el('input', 'mc-input');
+      this.meetingLinkInput.placeholder = 'Meeting link (optional)';
+      this.meetingLinkInput.type = 'text';
+      this.setupEl.appendChild(this.meetingLinkInput);
+      
+      this.meetingTitleInput = el('input', 'mc-input');
+      this.meetingTitleInput.placeholder = 'Meeting title';
+      this.meetingTitleInput.type = 'text';
+      this.setupEl.appendChild(this.meetingTitleInput);
+      
+      this.meetingContextInput = el('textarea', 'mc-input');
+      this.meetingContextInput.placeholder = 'Meeting context (e.g., job interview)';
+      this.meetingContextInput.rows = 2;
+      this.setupEl.appendChild(this.meetingContextInput);
+      
+      this.setupBtn = el('button', 'mc-btn mc-btn-primary', 'Start Meeting');
+      this.setupBtn.onclick = () => this.emit('setupMeeting');
+      this.setupEl.appendChild(this.setupBtn);
+      
+      body.appendChild(this.setupEl);
+
+      // Payment plans section
+      this.paymentEl = el('div', 'mc-payment');
+      this.paymentEl.style.display = 'none';
+      
+      const paymentTitle = el('div', 'mc-label', '⏰ Time expired! Choose a plan:');
+      this.paymentEl.appendChild(paymentTitle);
+      
+      const paymentDesc = el('div', 'mc-payment-desc', 'Your 30-second free trial has ended. Purchase a plan to continue using Meeting Copilot.');
+      this.paymentEl.appendChild(paymentDesc);
+      
+      this.plansContainer = el('div', 'mc-plans');
+      this.paymentEl.appendChild(this.plansContainer);
+      
+      body.appendChild(this.paymentEl);
 
       body.appendChild(el('div', 'mc-label', 'Latest'));
       this.transcriptEl = el('div', 'mc-transcript', '—');
@@ -82,13 +133,9 @@
       body.appendChild(this.answerEl);
 
       const actions = el('div', 'mc-actions');
-      this.answerBtn = el('button', 'mc-btn', 'Answer');
+      this.answerBtn = el('button', 'mc-btn mc-btn-primary', 'Answer');
       this.answerBtn.onclick = () => this.emit('answer');
-      this.insertBtn = el('button', 'mc-btn', 'Insert to chat');
-      this.insertBtn.onclick = () => this.emit('insert');
-      this.sendBtn = el('button', 'mc-btn mc-btn-primary', 'Insert + Send');
-      this.sendBtn.onclick = () => this.emit('send');
-      actions.append(this.answerBtn, this.insertBtn, this.sendBtn);
+      actions.append(this.answerBtn);
       body.appendChild(actions);
 
       // Diagnostics panel (hidden until Debug is toggled).
@@ -205,6 +252,50 @@
       if (!this.debugEl) return;
       const lines = Object.entries(info).map(([k, v]) => `${k}: ${v}`);
       this.debugEl.textContent = lines.join('\n');
+    }
+
+    setTrialVisible(on) {
+      if (this.trialEl) this.trialEl.style.display = on ? 'block' : 'none';
+    }
+
+    setSetupVisible(on) {
+      if (this.setupEl) this.setupEl.style.display = on ? 'block' : 'none';
+    }
+
+    setPaymentVisible(on) {
+      if (this.paymentEl) this.paymentEl.style.display = on ? 'block' : 'none';
+    }
+
+    setPaymentPlans(plans) {
+      if (!this.plansContainer) return;
+      this.plansContainer.innerHTML = '';
+      
+      plans.forEach(plan => {
+        const planEl = el('div', 'mc-plan');
+        
+        const planName = el('div', 'mc-plan-name', plan.name);
+        planEl.appendChild(planName);
+        
+        const planPrice = el('div', 'mc-plan-price', `₹${plan.price_inr}`);
+        planEl.appendChild(planPrice);
+        
+        const planDuration = el('div', 'mc-plan-duration', `${plan.duration_minutes} min`);
+        planEl.appendChild(planDuration);
+        
+        const planBtn = el('button', 'mc-btn mc-btn-primary', 'Buy');
+        planBtn.onclick = () => this.emit('purchasePlan', plan);
+        planEl.appendChild(planBtn);
+        
+        this.plansContainer.appendChild(planEl);
+      });
+    }
+
+    getMeetingSetup() {
+      return {
+        link: this.meetingLinkInput?.value || '',
+        title: this.meetingTitleInput?.value || '',
+        context: this.meetingContextInput?.value || '',
+      };
     }
 
     destroy() {

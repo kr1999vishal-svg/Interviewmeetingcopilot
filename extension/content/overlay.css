@@ -66,6 +66,66 @@
 #mc-overlay-root .mc-status-warn { color: #fbbf24; }
 #mc-overlay-root .mc-status-error { color: #fca5a5; }
 
+#mc-overlay-root .mc-trial {
+  font-size: 11px; color: #fbbf24; margin-bottom: 8px;
+  background: rgba(251, 191, 36, 0.15); border-radius: 6px;
+  padding: 6px 10px; text-align: center;
+}
+
+#mc-overlay-root .mc-setup {
+  margin-bottom: 12px; padding: 10px; background: rgba(30, 41, 59, 0.5);
+  border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+#mc-overlay-root .mc-setup-desc {
+  font-size: 11px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.4;
+  text-align: center;
+}
+
+#mc-overlay-root .mc-input {
+  width: 100%; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.25); background: rgba(15, 23, 42, 0.8);
+  color: #e2e8f0; font-size: 12px; font-family: inherit; margin-bottom: 8px;
+  box-sizing: border-box;
+}
+#mc-overlay-root .mc-input:focus {
+  outline: none; border-color: #6366f1;
+}
+#mc-overlay-root .mc-input::placeholder {
+  color: #64748b;
+}
+
+#mc-overlay-root .mc-payment {
+  margin-bottom: 12px; padding: 10px; background: rgba(30, 41, 59, 0.5);
+  border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+#mc-overlay-root .mc-payment-desc {
+  font-size: 11px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.4;
+}
+
+#mc-overlay-root .mc-plans {
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+#mc-overlay-root .mc-plan {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; background: rgba(15, 23, 42, 0.6);
+  border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+#mc-overlay-root .mc-plan-name {
+  font-size: 12px; font-weight: 600; color: #e2e8f0;
+}
+
+#mc-overlay-root .mc-plan-price {
+  font-size: 13px; font-weight: 700; color: #6ee7b7;
+}
+
+#mc-overlay-root .mc-plan-duration {
+  font-size: 11px; color: #94a3b8;
+}
+
 #mc-overlay-root .mc-label {
   font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
   color: #64748b; margin: 10px 0 4px;

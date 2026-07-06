@@ -31,7 +31,8 @@
   let processingAllowed = false;
   let listening = false;
   let usageInterval = null;
-  let usageSeconds = 0; // private tab-audio transcription
+  let usageSeconds = 0;
+  let isTimeExpired = false; // Track if time has expired
 
   /* -------------------------- messaging helpers -------------------------- */
   const send = (message) =>
@@ -91,9 +92,12 @@
   /* --------------------------- caption polling --------------------------- */
   function isQuestion(text) {
     const t = text.trim();
-    if (t.length < 6) return false;
+    // Faster detection - check for question mark first
     if (t.endsWith('?')) return true;
-    return QUESTION_RE.test(t.split(/\s+/).slice(0, 3).join(' '));
+    // Check for question words at the start (faster than regex)
+    const questionWords = ['what', 'how', 'why', 'when', 'where', 'who', 'which', 'can', 'could', 'would', 'should', 'is', 'are', 'do', 'does', 'did'];
+    const firstWord = t.split(/\s+/)[0]?.toLowerCase();
+    return questionWords.includes(firstWord);
   }
 
   function recentContext() {
@@ -130,6 +134,9 @@
   }
 
   function onFinalLine(line) {
+    // Don't process if time has expired
+    if (isTimeExpired) return;
+    
     contextLines.push(`${line.speaker}: ${line.text}`);
     overlay.setTranscript(`${line.speaker}: ${line.text}`);
     // Only assist the meeting whose link was configured (requirement #4).
@@ -212,6 +219,48 @@
       config = resp.config || { ...config, autoAnswer: next };
       overlay.setAuto(Boolean(config.autoAnswer));
     });
+    overlay.on('setupMeeting', async () => {
+      const setup = overlay.getMeetingSetup();
+      const resp = await send({ type: 'setConfig', patch: { activeMeeting: setup } });
+      config = resp.config || { ...config, activeMeeting: setup };
+      overlay.setSetupVisible(false);
+      updateGateStatus();
+    });
+    overlay.on('purchasePlan', async (plan) => {
+      try {
+        const email = config?.user?.email;
+        if (!email) {
+          overlay.setStatus('Please sign in first', 'warn');
+          return;
+        }
+
+        const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+        const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/create-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, planId: plan.id }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to create order');
+        }
+
+        const data = await res.json();
+        
+        // Load Razorpay checkout script if not loaded
+        if (!window.Razorpay) {
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = () => openRazorpayCheckout(data.order, plan, email);
+          document.head.appendChild(script);
+        } else {
+          openRazorpayCheckout(data.order, plan, email);
+        }
+      } catch (err) {
+        console.error('Payment error:', err);
+        overlay.setStatus('Payment failed. Please try again.', 'warn');
+      }
+    });
     overlay.on('close', () => {
       userClosed = true;
       // Persist the userClosed flag to storage
@@ -247,12 +296,17 @@
     processingAllowed = match.ok;
     overlay.setMeetingTitle(config?.activeMeeting?.title || 'Meeting Copilot');
     overlay.setAuto(Boolean(config?.autoAnswer));
+    
+    // Show meeting setup if no active meeting
     if (match.reason === 'no-link') {
-      overlay.setStatus('No active meeting set — open the extension popup.', 'warn');
+      overlay.setStatus('No active meeting set — configure below:', 'warn');
+      overlay.setSetupVisible(true);
     } else if (!match.ok) {
       overlay.setStatus('Not the configured meeting — assistance paused.', 'warn');
+      overlay.setSetupVisible(false);
     } else {
       overlay.setStatus('Listening to captions…', 'ok');
+      overlay.setSetupVisible(false);
     }
   }
 
@@ -274,11 +328,15 @@
         if (data.success && data.user) {
           if (data.user.remaining_seconds <= 0) {
             overlay.setStatus('Time expired. Please purchase a plan.', 'warn');
-            // Redirect to payment page
-            window.open('https://interviewmeetingcopilot.vercel.app/payment', '_blank');
+            // Show payment UI in overlay
+            showPaymentUI();
             return;
           }
           usageSeconds = 0;
+          // Show trial indicator if on free trial
+          if (data.user.is_free_trial) {
+            overlay.setTrialVisible(true);
+          }
         }
       }
     } catch (err) {
@@ -309,10 +367,32 @@
       // Check if time expired (30 seconds free trial or paid plan)
       if (usageSeconds >= 30 && !config?.user?.hasPaid) {
         stopUsageTracking();
+        isTimeExpired = true;
         overlay.setStatus('Free trial expired. Please purchase a plan.', 'warn');
-        window.open('https://interviewmeetingcopilot.vercel.app/payment', '_blank');
+        showPaymentUI();
+        // Stop transcription if listening
+        send({ type: 'stopCapture' }).then(() => {
+          listening = false;
+          overlay.setListening(false);
+        });
       }
     }, 1000);
+  }
+
+  async function showPaymentUI() {
+    try {
+      const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+      const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/plans`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.plans) {
+          overlay.setPaymentPlans(data.plans);
+          overlay.setPaymentVisible(true);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load payment plans:', err);
+    }
   }
 
   function stopUsageTracking() {
@@ -320,6 +400,61 @@
       clearInterval(usageInterval);
       usageInterval = null;
     }
+  }
+
+  async function openRazorpayCheckout(order, plan, email) {
+    const options = {
+      key: order.key_id,
+      amount: order.amount,
+      currency: order.currency,
+      name: 'Meeting Copilot',
+      description: plan.name,
+      order_id: order.id,
+      handler: async function (response) {
+        try {
+          const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+          const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/verify-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              email,
+            }),
+          });
+
+          if (res.ok) {
+            overlay.setStatus('Payment successful! Meeting Copilot is now active.', 'ok');
+            overlay.setPaymentVisible(false);
+            // Reload config to get updated plan
+            await loadConfig();
+            // Reset time expired flag
+            isTimeExpired = false;
+            // Restart usage tracking
+            usageSeconds = 0;
+            startUsageTracking();
+          } else {
+            overlay.setStatus('Payment verification failed. Please contact support.', 'warn');
+          }
+        } catch (err) {
+          console.error('Payment verification error:', err);
+          overlay.setStatus('Payment verification failed. Please try again.', 'warn');
+        }
+      },
+      prefill: {
+        email: email,
+      },
+      theme: {
+        color: '#4F46E5',
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.on('payment.failed', function (response) {
+      overlay.setStatus('Payment failed: ' + response.error.description, 'warn');
+    });
+    rzp.open();
   }
 
   function deactivate() {

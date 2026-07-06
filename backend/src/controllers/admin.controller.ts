@@ -414,7 +414,18 @@ export async function getUserUsage(req: Request, res: Response) {
     let remainingSeconds = 0;
     let isFreeTrial = !user.free_trial_used;
     
-    if (user.plan_expires_at) {
+    // Check if user has unlimited plan (Professional - duration_minutes = 0)
+    const plan = user.payment_plans as any;
+    const isUnlimited = plan && plan.duration_minutes === 0;
+    
+    if (isUnlimited && user.plan_expires_at) {
+      const now = new Date();
+      const expiresAt = new Date(user.plan_expires_at);
+      // For unlimited, check if plan is still active
+      if (expiresAt > now) {
+        remainingSeconds = 999999; // Large number to indicate unlimited
+      }
+    } else if (user.plan_expires_at) {
       const now = new Date();
       const expiresAt = new Date(user.plan_expires_at);
       remainingSeconds = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000));

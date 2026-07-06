@@ -47,10 +47,9 @@ CREATE TABLE IF NOT EXISTS payment_transactions (
 
 -- Insert default payment plans
 INSERT INTO payment_plans (name, duration_minutes, price_inr, price_usd, description) VALUES
-  ('1 Minute', 1, 8, 0.10, '1 minute of meeting copilot'),
-  ('30 Minutes', 30, 800, 10.00, '30 minutes of meeting copilot'),
-  ('45 Minutes', 45, 880, 11.00, '45 minutes of meeting copilot'),
-  ('60 Minutes', 60, 1200, 15.00, '60 minutes of meeting copilot')
+  ('Starter', 30, 750, 9.00, '30 minutes of meeting copilot'),
+  ('Most Popular', 60, 1000, 12.00, '60 minutes of meeting copilot'),
+  ('Professional', 0, 4100, 49.00, 'Unlimited monthly access')
 ON CONFLICT DO NOTHING;
 
 -- If the table already exists with old schema, add missing columns
