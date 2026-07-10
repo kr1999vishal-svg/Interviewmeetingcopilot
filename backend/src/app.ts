@@ -36,6 +36,12 @@ export const createApp = () => {
         if (origin === 'https://interviewmeetingcopilot.vercel.app') {
           return callback(null, true);
         }
+        // Allow Google Meet and Teams (content script origin)
+        if (origin === 'https://meet.google.com' || 
+            origin === 'https://teams.microsoft.com' || 
+            origin === 'https://teams.live.com') {
+          return callback(null, true);
+        }
         return callback(null, false);
       },
     }),
