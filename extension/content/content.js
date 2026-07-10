@@ -198,14 +198,13 @@
     overlay.setAuto(Boolean(config?.autoAnswer));
     overlay.setMeetingTitle(config?.activeMeeting?.title || 'Meeting Copilot');
 
-    // Auto-start transcription if on the configured meeting
-    const match = matchesActiveMeeting();
-    if (match.ok && !listening) {
+    // Auto-start transcription always when overlay is activated
+    if (!listening) {
       const resp = await send({ type: 'startCapture' });
       if (resp.ok) {
         listening = true;
         overlay.setListening(true);
-        overlay.setStatus('Auto-starting private transcription…', 'ok');
+        overlay.setStatus('Listening to meeting audio…', 'ok');
         startUsageTracking();
       }
     }

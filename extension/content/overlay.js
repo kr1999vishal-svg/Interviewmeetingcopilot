@@ -46,6 +46,7 @@
       this.listenBtn = el('button', 'mc-chip', 'Listen');
       this.listenBtn.title = 'Privately transcribe the meeting audio (tab audio)';
       this.listenBtn.onclick = () => this.emit('toggleListen');
+      this.listenBtn.style.display = 'none'; // Auto-start, hide manual button
       header.appendChild(this.listenBtn);
 
       this.autoBtn = el('button', 'mc-chip', 'Auto: Off');
