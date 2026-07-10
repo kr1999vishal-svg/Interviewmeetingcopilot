@@ -135,8 +135,8 @@
   }
 
   function onFinalLine(line) {
-    // Don't process if time has expired (temporarily disabled for debugging)
-    // if (isTimeExpired) return;
+    // Don't process if time has expired
+    if (isTimeExpired) return;
     
     contextLines.push(`${line.speaker}: ${line.text}`);
     overlay.setTranscript(`${line.speaker}: ${line.text}`);
@@ -563,14 +563,13 @@
       contextLines.push(`Private: ${message.text}`);
       overlay.setTranscript(`Private: ${message.text}`);
       
-      // Also process for question detection (temporarily disabled trial expiry check)
+      // Also process for question detection
       const text = message.text;
       console.log('Processing STT text for question:', text);
       console.log('processingAllowed:', processingAllowed);
       console.log('isQuestion:', isQuestion(text));
       
-      // if (!isTimeExpired && processingAllowed && isQuestion(text) && text !== lastQuestion) {
-      if (processingAllowed && isQuestion(text) && text !== lastQuestion) {
+      if (!isTimeExpired && processingAllowed && isQuestion(text) && text !== lastQuestion) {
         console.log('Question detected from STT:', text);
         overlay.setQuestion(text);
         answerQuestion(text, { auto: true });
