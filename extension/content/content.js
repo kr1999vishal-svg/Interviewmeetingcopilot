@@ -198,6 +198,14 @@
     overlay.setAuto(Boolean(config?.autoAnswer));
     overlay.setMeetingTitle(config?.activeMeeting?.title || 'Meeting Copilot');
 
+    // Check if user has paid before starting transcription
+    const hasPaid = await checkPaymentStatus();
+    if (!hasPaid) {
+      overlay.setStatus('Payment required to start meeting assistance', 'warn');
+      showPaymentUI();
+      return;
+    }
+
     // Auto-start transcription always when overlay is activated
     if (!listening) {
       const resp = await send({ type: 'startCapture' });
@@ -343,10 +351,6 @@
             return;
           }
           usageSeconds = 0;
-          // Show trial indicator if on free trial
-          if (data.user.is_free_trial) {
-            overlay.setTrialVisible(true);
-          }
         }
       }
     } catch (err) {
@@ -374,18 +378,6 @@
         }
       }
 
-      // Check if time expired (30 seconds free trial or paid plan)
-      if (usageSeconds >= 30 && !config?.user?.hasPaid) {
-        stopUsageTracking();
-        isTimeExpired = true;
-        overlay.setStatus('Free trial expired. Please purchase a plan.', 'warn');
-        showPaymentUI();
-        // Stop transcription if listening
-        send({ type: 'stopCapture' }).then(() => {
-          listening = false;
-          overlay.setListening(false);
-        });
-      }
     }, 1000);
   }
 
@@ -402,6 +394,27 @@
       }
     } catch (err) {
       console.error('Failed to load payment plans:', err);
+    }
+  }
+
+  async function checkPaymentStatus() {
+    try {
+      const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+      const email = config?.user?.email;
+      if (!email) return false;
+
+      const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/usage?email=${encodeURIComponent(email)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          // User has paid if they have remaining time or a valid plan
+          return data.user.remaining_seconds > 0 || data.user.current_plan_id;
+        }
+      }
+      return false;
+    } catch (err) {
+      console.error('Failed to check payment status:', err);
+      return false;
     }
   }
 

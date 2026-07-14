@@ -67,11 +67,6 @@
       // Body
       const body = el('div', 'mc-body');
 
-      // Free trial description
-      this.trialEl = el('div', 'mc-trial', '🎁 30-second free trial');
-      this.trialEl.style.display = 'none';
-      body.appendChild(this.trialEl);
-
       this.statusEl = el('div', 'mc-status', 'Waiting for meeting…');
       body.appendChild(this.statusEl);
 
@@ -115,10 +110,10 @@
       this.paymentEl = el('div', 'mc-payment');
       this.paymentEl.style.display = 'none';
       
-      const paymentTitle = el('div', 'mc-label', '⏰ Time expired! Choose a plan:');
+      const paymentTitle = el('div', 'mc-label', '💳 Pay to Start Meeting Assistance');
       this.paymentEl.appendChild(paymentTitle);
       
-      const paymentDesc = el('div', 'mc-payment-desc', 'Your 30-second free trial has ended. Purchase a plan to continue using Meeting Copilot.');
+      const paymentDesc = el('div', 'mc-payment-desc', 'Purchase a plan to start using Meeting Copilot.');
       this.paymentEl.appendChild(paymentDesc);
       
       this.plansContainer = el('div', 'mc-plans');
@@ -258,10 +253,6 @@
       if (!this.debugEl) return;
       const lines = Object.entries(info).map(([k, v]) => `${k}: ${v}`);
       this.debugEl.textContent = lines.join('\n');
-    }
-
-    setTrialVisible(on) {
-      if (this.trialEl) this.trialEl.style.display = on ? 'block' : 'none';
     }
 
     setSetupVisible(on) {
