@@ -207,18 +207,24 @@ export async function registerUser(req: Request, res: Response) {
 
 export async function getPaymentPlans(req: Request, res: Response) {
   try {
+    // Return only the 3 specific plans we want in the correct order
     const { data, error } = await supabase
       .from('payment_plans')
       .select('*')
-      .eq('is_active', true)
-      .order('duration_minutes', { ascending: true });
+      .in('name', ['Starter', 'Most Popular', 'Professional']);
 
     if (error) {
       console.log('Supabase error:', error.message);
       return res.status(500).json({ error: 'Failed to fetch payment plans' });
     }
 
-    res.json({ success: true, plans: data || [] });
+    // Sort in the correct order: Starter, Most Popular, Professional
+    const sortOrder = ['Starter', 'Most Popular', 'Professional'];
+    const sortedPlans = (data || []).sort((a, b) => {
+      return sortOrder.indexOf(a.name) - sortOrder.indexOf(b.name);
+    });
+
+    res.json({ success: true, plans: sortedPlans });
   } catch (error) {
     console.log('Failed to get payment plans:', error);
     res.status(500).json({ error: 'Failed to get payment plans' });

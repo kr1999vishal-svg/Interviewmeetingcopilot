@@ -479,58 +479,82 @@
   }
 
   async function openRazorpayCheckout(order, plan, email) {
-    const options = {
-      key: order.key_id,
-      amount: order.amount,
-      currency: order.currency,
-      name: 'Meeting Copilot',
-      description: plan.name,
-      order_id: order.id,
-      handler: async function (response) {
-        try {
-          const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
-          const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/verify-payment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              email,
-            }),
-          });
+    console.log('Opening Razorpay checkout with order:', order);
+    
+    if (!window.Razorpay) {
+      console.error('Razorpay not loaded');
+      overlay.setStatus('Payment gateway not loaded. Please refresh and try again.', 'warn');
+      return;
+    }
 
-          if (res.ok) {
-            overlay.setStatus('Payment successful! Meeting Copilot is now active.', 'ok');
-            overlay.setPaymentVisible(false);
-            // Reload config to get updated plan
-            await loadConfig();
-            // Reset time expired flag
-            isTimeExpired = false;
-            // Restart usage tracking
-            usageSeconds = 0;
-            startUsageTracking();
-          } else {
-            overlay.setStatus('Payment verification failed. Please contact support.', 'warn');
+    try {
+      const options = {
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Meeting Copilot',
+        description: plan.name,
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+            const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/verify-payment`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                email,
+              }),
+            });
+
+            if (res.ok) {
+              overlay.setStatus('Payment successful! Meeting Copilot is now active.', 'ok');
+              overlay.setPaymentVisible(false);
+              // Reload config to get updated plan
+              await loadConfig();
+              // Reset time expired flag
+              isTimeExpired = false;
+              // Restart usage tracking
+              usageSeconds = 0;
+              startUsageTracking();
+            } else {
+              overlay.setStatus('Payment verification failed. Please contact support.', 'warn');
+            }
+          } catch (err) {
+            console.error('Payment verification error:', err);
+            overlay.setStatus('Payment verification failed. Please try again.', 'warn');
           }
-        } catch (err) {
-          console.error('Payment verification error:', err);
-          overlay.setStatus('Payment verification failed. Please try again.', 'warn');
+        },
+        prefill: {
+          email: email,
+        },
+        theme: {
+          color: '#4F46E5',
+        },
+        modal: {
+          ondismiss: function() {
+            console.log('Razorpay modal dismissed');
+            overlay.setStatus('Payment cancelled. You can try again anytime.', 'warn');
+          }
         }
-      },
-      prefill: {
-        email: email,
-      },
-      theme: {
-        color: '#4F46E5',
-      },
-    };
+      };
 
-    const rzp = new window.Razorpay(options);
-    rzp.on('payment.failed', function (response) {
-      overlay.setStatus('Payment failed: ' + response.error.description, 'warn');
-    });
-    rzp.open();
+      console.log('Creating Razorpay instance with options:', options);
+      const rzp = new window.Razorpay(options);
+      
+      rzp.on('payment.failed', function (response) {
+        console.error('Payment failed:', response);
+        overlay.setStatus('Payment failed: ' + response.error.description, 'warn');
+      });
+      
+      console.log('Opening Razorpay modal');
+      rzp.open();
+    } catch (err) {
+      console.error('Failed to open Razorpay checkout:', err);
+      overlay.setStatus('Failed to open payment gateway. Please try again.', 'warn');
+    }
   }
 
   function deactivate() {
