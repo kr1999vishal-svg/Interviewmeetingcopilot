@@ -244,12 +244,14 @@
     });
     overlay.on('purchasePlan', async (plan) => {
       try {
+        console.log('Purchase plan clicked:', plan);
         const email = config?.user?.email;
         if (!email) {
           overlay.setStatus('Please sign in first', 'warn');
           return;
         }
 
+        overlay.setStatus('Creating payment order...', 'ok');
         const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
         const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/create-order`, {
           method: 'POST',
@@ -258,23 +260,34 @@
         });
 
         if (!res.ok) {
-          throw new Error('Failed to create order');
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to create order');
         }
 
         const data = await res.json();
+        console.log('Order created:', data);
         
         // Load Razorpay checkout script if not loaded
         if (!window.Razorpay) {
+          console.log('Loading Razorpay script...');
           const script = document.createElement('script');
           script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-          script.onload = () => openRazorpayCheckout(data.order, plan, email);
+          script.onload = () => {
+            console.log('Razorpay script loaded, opening checkout');
+            openRazorpayCheckout(data.order, plan, email);
+          };
+          script.onerror = () => {
+            console.error('Failed to load Razorpay script');
+            overlay.setStatus('Failed to load payment gateway. Please try again.', 'warn');
+          };
           document.head.appendChild(script);
         } else {
+          console.log('Razorpay already loaded, opening checkout');
           openRazorpayCheckout(data.order, plan, email);
         }
       } catch (err) {
         console.error('Payment error:', err);
-        overlay.setStatus('Payment failed. Please try again.', 'warn');
+        overlay.setStatus('Payment failed: ' + err.message, 'warn');
       }
     });
     overlay.on('close', () => {

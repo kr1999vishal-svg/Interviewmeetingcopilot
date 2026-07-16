@@ -45,12 +45,12 @@ CREATE TABLE IF NOT EXISTS payment_transactions (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert default payment plans
+-- Insert default payment plans (clean up any existing duplicates first)
+DELETE FROM payment_plans;
 INSERT INTO payment_plans (name, duration_minutes, price_inr, price_usd, description) VALUES
   ('Starter', 30, 750, 9.00, '30 minutes of meeting copilot'),
   ('Most Popular', 60, 1000, 12.00, '60 minutes of meeting copilot'),
-  ('Professional', 0, 4100, 49.00, 'Unlimited monthly access')
-ON CONFLICT DO NOTHING;
+  ('Professional', 0, 4100, 49.00, 'Unlimited monthly access');
 
 -- If the table already exists with old schema, add missing columns
 DO $$

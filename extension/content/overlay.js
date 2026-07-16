@@ -270,16 +270,26 @@
       plans.forEach(plan => {
         const planEl = el('div', 'mc-plan');
         
+        // Highlight "Most Popular" plan
+        if (plan.name === 'Most Popular') {
+          planEl.classList.add('mc-plan-featured');
+          const featuredBadge = el('div', 'mc-plan-badge', '⭐ Most Popular');
+          planEl.appendChild(featuredBadge);
+        }
+        
         const planName = el('div', 'mc-plan-name', plan.name);
         planEl.appendChild(planName);
         
         const planPrice = el('div', 'mc-plan-price', `₹${plan.price_inr}`);
         planEl.appendChild(planPrice);
         
-        const planDuration = el('div', 'mc-plan-duration', `${plan.duration_minutes} min`);
+        const planDuration = el('div', 'mc-plan-duration', plan.duration_minutes === 0 ? 'Unlimited' : `${plan.duration_minutes} minutes`);
         planEl.appendChild(planDuration);
         
-        const planBtn = el('button', 'mc-btn mc-btn-primary', 'Buy');
+        const planDesc = el('div', 'mc-plan-desc', plan.description);
+        planEl.appendChild(planDesc);
+        
+        const planBtn = el('button', 'mc-btn mc-btn-primary mc-plan-btn', plan.name === 'Most Popular' ? 'Buy Now' : 'Select');
         planBtn.onclick = () => this.emit('purchasePlan', plan);
         planEl.appendChild(planBtn);
         

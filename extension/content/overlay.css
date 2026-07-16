@@ -123,21 +123,48 @@
 }
 
 #mc-overlay-root .mc-plan {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 10px; background: rgba(15, 23, 42, 0.6);
-  border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.15);
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px; background: rgba(15, 23, 42, 0.6);
+  border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.15);
+  transition: all 0.2s ease;
+}
+
+#mc-overlay-root .mc-plan:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(30, 41, 59, 0.7);
+}
+
+#mc-overlay-root .mc-plan-featured {
+  border: 2px solid #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+#mc-overlay-root .mc-plan-badge {
+  font-size: 10px; font-weight: 700; color: #fbbf24;
+  background: rgba(251, 191, 36, 0.2); padding: 4px 8px;
+  border-radius: 999px; text-align: center; margin-bottom: 4px;
 }
 
 #mc-overlay-root .mc-plan-name {
-  font-size: 12px; font-weight: 600; color: #e2e8f0;
+  font-size: 14px; font-weight: 700; color: #e2e8f0;
 }
 
 #mc-overlay-root .mc-plan-price {
-  font-size: 13px; font-weight: 700; color: #6ee7b7;
+  font-size: 18px; font-weight: 800; color: #6ee7b7;
 }
 
 #mc-overlay-root .mc-plan-duration {
-  font-size: 11px; color: #94a3b8;
+  font-size: 12px; color: #94a3b8; font-weight: 500;
+}
+
+#mc-overlay-root .mc-plan-desc {
+  font-size: 11px; color: #cbd5e1; line-height: 1.4;
+}
+
+#mc-overlay-root .mc-plan-btn {
+  margin-top: 4px; padding: 10px; font-weight: 600;
+  border-radius: 6px;
 }
 
 #mc-overlay-root .mc-label {
