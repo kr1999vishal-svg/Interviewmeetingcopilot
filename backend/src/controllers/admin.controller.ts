@@ -235,8 +235,17 @@ export async function createRazorpayOrder(req: Request, res: Response) {
   try {
     const { email, planId } = req.body;
 
+    console.log('Creating Razorpay order for email:', email, 'planId:', planId);
+
     if (!email || !planId) {
+      console.error('Missing email or planId');
       return res.status(400).json({ error: 'Email and planId are required' });
+    }
+
+    // Check if Razorpay credentials are configured
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      console.error('Razorpay credentials not configured');
+      return res.status(500).json({ error: 'Payment gateway not configured. Please contact support.' });
     }
 
     // Get plan details
@@ -247,8 +256,11 @@ export async function createRazorpayOrder(req: Request, res: Response) {
       .single();
 
     if (planError || !plan) {
+      console.error('Plan not found:', planError);
       return res.status(404).json({ error: 'Plan not found' });
     }
+
+    console.log('Plan found:', plan.name, 'price:', plan.price_inr);
 
     // Get user
     const { data: user } = await supabase
@@ -258,8 +270,11 @@ export async function createRazorpayOrder(req: Request, res: Response) {
       .single();
 
     if (!user) {
+      console.error('User not found for email:', email);
       return res.status(404).json({ error: 'User not found' });
     }
+
+    console.log('User found:', user.email);
 
     // Create Razorpay order (you'll need to implement actual Razorpay API call)
     const Razorpay = require('razorpay');
@@ -279,7 +294,11 @@ export async function createRazorpayOrder(req: Request, res: Response) {
       },
     };
 
+    console.log('Creating Razorpay order with options:', { ...options, key_secret: '***' });
+
     const order = await razorpay.orders.create(options);
+
+    console.log('Razorpay order created successfully:', order.id);
 
     // Create pending transaction
     const { data: transaction, error: txError } = await supabase

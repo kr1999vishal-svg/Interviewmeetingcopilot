@@ -283,13 +283,10 @@
         const planPrice = el('div', 'mc-plan-price', `₹${plan.price_inr}`);
         planEl.appendChild(planPrice);
         
-        const planDuration = el('div', 'mc-plan-duration', plan.duration_minutes === 0 ? 'Unlimited' : `${plan.duration_minutes} minutes`);
-        planEl.appendChild(planDuration);
-        
         const planDesc = el('div', 'mc-plan-desc', plan.description);
         planEl.appendChild(planDesc);
         
-        const planBtn = el('button', 'mc-btn mc-btn-primary mc-plan-btn', plan.name === 'Most Popular' ? 'Buy Now' : 'Select');
+        const planBtn = el('button', 'mc-btn mc-btn-primary mc-plan-btn', 'Select');
         planBtn.onclick = () => this.emit('purchasePlan', plan);
         planEl.appendChild(planBtn);
         
