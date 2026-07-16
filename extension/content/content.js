@@ -307,11 +307,21 @@
   }
 
   /** Recompute whether AI assistance is allowed and reflect it in the overlay. */
-  function updateGateStatus() {
+  async function updateGateStatus() {
     const match = matchesActiveMeeting();
     processingAllowed = match.ok;
     overlay.setMeetingTitle(config?.activeMeeting?.title || 'Meeting Copilot');
     overlay.setAuto(Boolean(config?.autoAnswer));
+    
+    // Check payment status first
+    const hasPaid = await checkPaymentStatus();
+    if (!hasPaid) {
+      overlay.setStatus('Payment required to start meeting assistance', 'warn');
+      showPaymentUI();
+      overlay.setSetupVisible(false);
+      processingAllowed = false;
+      return;
+    }
     
     // Show meeting setup if no active meeting
     if (match.reason === 'no-link') {
@@ -407,8 +417,9 @@
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.user) {
-          // User has paid if they have remaining time or a valid plan
-          return data.user.remaining_seconds > 0 || data.user.current_plan_id;
+          // User has paid only if they have a valid plan (current_plan_id)
+          // remaining_seconds alone is not enough - they need an actual plan
+          return Boolean(data.user.current_plan_id);
         }
       }
       return false;
