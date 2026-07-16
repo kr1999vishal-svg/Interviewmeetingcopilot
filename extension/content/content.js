@@ -245,35 +245,48 @@
     overlay.on('purchasePlan', async (plan) => {
       try {
         console.log('Purchase plan clicked:', plan);
+        overlay.setStatus('Initializing payment...', 'ok');
+        
         const email = config?.user?.email;
         if (!email) {
+          console.error('No email found in config');
           overlay.setStatus('Please sign in first', 'warn');
           return;
         }
 
+        console.log('User email:', email);
         overlay.setStatus('Creating payment order...', 'ok');
+        
         const backendUrl = config?.backendUrl || 'https://interview-ai-backend-tlka.onrender.com';
+        console.log('Backend URL:', backendUrl);
+        
         const res = await fetch(`${backendUrl.replace(/\/$/, '')}/api/admin/create-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, planId: plan.id }),
         });
 
+        console.log('Order response status:', res.status);
+        
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
+          console.error('Order creation failed:', errorData);
           throw new Error(errorData.error || 'Failed to create order');
         }
 
         const data = await res.json();
         console.log('Order created:', data);
+        overlay.setStatus('Opening payment gateway...', 'ok');
         
         // Load Razorpay checkout script if not loaded
         if (!window.Razorpay) {
           console.log('Loading Razorpay script...');
+          overlay.setStatus('Loading payment gateway...', 'ok');
           const script = document.createElement('script');
           script.src = 'https://checkout.razorpay.com/v1/checkout.js';
           script.onload = () => {
             console.log('Razorpay script loaded, opening checkout');
+            overlay.setStatus('Opening checkout...', 'ok');
             openRazorpayCheckout(data.order, plan, email);
           };
           script.onerror = () => {
@@ -283,6 +296,7 @@
           document.head.appendChild(script);
         } else {
           console.log('Razorpay already loaded, opening checkout');
+          overlay.setStatus('Opening checkout...', 'ok');
           openRazorpayCheckout(data.order, plan, email);
         }
       } catch (err) {
