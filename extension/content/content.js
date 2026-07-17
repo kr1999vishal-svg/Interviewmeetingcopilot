@@ -563,8 +563,14 @@
         overlay.setStatus('Payment failed: ' + response.error.description, 'warn');
       });
       
-      console.log('Opening Razorpay modal');
-      rzp.open();
+      console.log('About to call rzp.open()');
+      try {
+        rzp.open();
+        console.log('rzp.open() called successfully');
+      } catch (openErr) {
+        console.error('Error calling rzp.open():', openErr);
+        overlay.setStatus('Failed to open payment popup. Check if popup blocker is enabled.', 'warn');
+      }
     } catch (err) {
       console.error('Failed to open Razorpay checkout:', err);
       overlay.setStatus('Failed to open payment gateway. Please try again.', 'warn');
@@ -576,6 +582,11 @@
     active = false;
     stopUsageTracking();
     overlay.destroy();
+    // Stop capture if it's running
+    if (listening) {
+      send({ type: 'stopCapture' });
+      listening = false;
+    }
   }
 
   async function evaluateGate() {
