@@ -245,7 +245,12 @@ export async function createRazorpayOrder(req: Request, res: Response) {
     // Check if Razorpay credentials are configured
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
       console.error('Razorpay credentials not configured');
-      return res.status(500).json({ error: 'Payment gateway not configured. Please contact support.' });
+      console.error('RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID ? 'SET' : 'NOT SET');
+      console.error('RAZORPAY_KEY_SECRET:', process.env.RAZORPAY_KEY_SECRET ? 'SET' : 'NOT SET');
+      return res.status(500).json({ 
+        error: 'Payment gateway not configured. Please contact support.',
+        details: 'Razorpay credentials are not configured in the backend environment.'
+      });
     }
 
     // Get plan details

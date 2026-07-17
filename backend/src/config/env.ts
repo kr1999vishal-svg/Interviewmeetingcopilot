@@ -18,6 +18,8 @@ export const env = {
   wsPath: process.env.WS_PATH ?? '/ws',
   openaiApiKey: process.env.OPENAI_API_KEY ?? '',
   openaiModel: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID ?? '',
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET ?? '',
 } as const;
 
 export const hasOpenAi = Boolean(env.openaiApiKey);
