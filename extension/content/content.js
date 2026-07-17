@@ -305,10 +305,13 @@
       }
     });
     overlay.on('close', () => {
+      console.log('Close event received');
       userClosed = true;
       // Persist the userClosed flag to storage
       send({ type: 'setConfig', patch: { userClosed: true } });
+      console.log('Deactivating overlay');
       deactivate();
+      console.log('Overlay deactivated');
     });
     overlay.on('toggleListen', async () => {
       if (listening) {

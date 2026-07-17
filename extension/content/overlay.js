@@ -56,7 +56,12 @@
 
       this.closeBtn = el('button', 'mc-icon-btn mc-close-btn', '×');
       this.closeBtn.title = 'Close Meeting Copilot';
-      this.closeBtn.onclick = () => this.emit('close');
+      this.closeBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Close button clicked');
+        this.emit('close');
+      };
       header.appendChild(this.closeBtn);
 
       this.minBtn = el('button', 'mc-icon-btn', '–');
