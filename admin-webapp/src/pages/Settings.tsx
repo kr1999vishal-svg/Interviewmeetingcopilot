@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { saveBackendConfig, getBackendConfig, BackendConfig } from '../lib/api';
 import { Save, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function Settings() {
+  const navigate = useNavigate();
   const [config, setConfig] = useState<BackendConfig>({
     backendUrl: 'http://localhost:4000',
     aiProvider: 'openai',
@@ -39,6 +41,8 @@ export default function Settings() {
       await saveBackendConfig(config);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+      // Navigate to payment page after successful save
+      setTimeout(() => navigate('/payment'), 500);
     } catch (err) {
       setError('Failed to save configuration');
     } finally {

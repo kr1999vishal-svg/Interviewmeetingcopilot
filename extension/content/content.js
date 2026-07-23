@@ -346,8 +346,7 @@
     // Check payment status first
     const hasPaid = await checkPaymentStatus();
     if (!hasPaid) {
-      overlay.setStatus('Payment required to start meeting assistance', 'warn');
-      showPaymentUI();
+      overlay.setStatus('Please complete payment in the admin panel to start meeting assistance', 'warn');
       overlay.setSetupVisible(false);
       processingAllowed = false;
       return;
@@ -385,9 +384,7 @@
         const data = await res.json();
         if (data.success && data.user) {
           if (data.user.remaining_seconds <= 0) {
-            overlay.setStatus('Time expired. Please purchase a plan.', 'warn');
-            // Show payment UI in overlay
-            showPaymentUI();
+            overlay.setStatus('Time expired. Please purchase a plan in the admin panel.', 'warn');
             return;
           }
           usageSeconds = 0;

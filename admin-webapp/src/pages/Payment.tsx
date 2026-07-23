@@ -135,18 +135,10 @@ export default function Payment() {
               disabled={processing}
               className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
             >
-              {processing && selectedPlan?.id === plan.id ? 'Processing...' : 'Buy Now'}
+              {processing && selectedPlan?.id === plan.id ? 'Processing...' : 'Select'}
             </button>
           </div>
         ))}
-      </div>
-
-      <div className="mt-8 p-4 bg-gray-800 rounded-lg border border-gray-700">
-        <h3 className="text-lg font-semibold text-white mb-2">Free Trial</h3>
-        <p className="text-gray-400">
-          New users get 30 seconds of free usage to try Meeting Copilot. After the trial,
-          you'll need to purchase a plan to continue.
-        </p>
       </div>
     </div>
   );
